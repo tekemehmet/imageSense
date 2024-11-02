@@ -1,0 +1,59 @@
+/* Base styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* Container styling */
+.container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+}
+
+/* Form elements */
+h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    color: #333333;
+}
+
+input[type="file"] {
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #cccccc;
+    cursor: pointer;
+}
+
+/* Button styling */
+button {
+    background-color: #007bff;
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Result section styling */
+#result {
+    margin-top: 20px;
+    padding: 15px;
+    border-top: 1px solid #eeeeee;
+    font-size: 1em;
+    color: #555555;
+}

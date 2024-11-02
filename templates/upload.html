@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #preview {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload an Image</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data" id="uploadForm">
+        <input type="file" name="image" accept="image/*" id="imageInput" onchange="previewImage()">
+        <img id="preview" style="display:none;">
+        <button type="submit">Submit</button>
+    </form>
+
+    <!-- Add response display areas -->
+    <div id="response" style="display:none; margin-top: 20px;">
+        <h2>Generated Results:</h2>
+        <div>
+            <h3>Description:</h3>
+            <p id="generatedDescription"></p>
+        </div>
+        <div>
+            <h3>Keywords:</h3>
+            <p id="generatedKeywords"></p>
+        </div>
+    </div>
+
+    <script>
+        function previewImage() {
+            const file = document.getElementById('imageInput').files[0];
+            const preview = document.getElementById('preview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Add form submission handler
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display the response
+                document.getElementById('response').style.display = 'block';
+                document.getElementById('generatedDescription').textContent = data.description;
+                document.getElementById('generatedKeywords').textContent = data.keywords.join(', ');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while processing your request.');
+            });
+        });
+    </script>
+</body>
+</html>
