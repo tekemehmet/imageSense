@@ -1,15 +1,15 @@
 from flask import Flask, request, jsonify, render_template
 from PIL import Image
 from io import BytesIO
-import openai
 import base64
 import os
-import requests
+from openai import OpenAI
+import re
 
 app = Flask(__name__)
 
-# Load your API key from an environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route('/')
 def home():
@@ -33,43 +33,40 @@ def upload_image():
     return jsonify({'description': description, 'keywords': keywords})
 
 def generate_description_and_keywords(image_base64):
-    url = "https://api.openai.com/v1/chat/completions"
-    
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {openai.api_key}"
-    }
-    
-    payload = {
-        "model": "gpt-4o-mini",
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": "Describe this image and provide 50 relevant keywords:"},
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{image_base64}"
-                        }
-                    },
-                ],
-            }
-        ],
-        "max_tokens": 300
-    }
-    
-    response = requests.post(url, json=payload, headers=headers)
-    response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
-    
-    data = response.json()
-    
-    # Process the response
-    text_output = data['choices'][0]['message']['content'].strip()
-    description, keywords = text_output.split('Keywords:', 1)
-    keywords = [k.strip() for k in keywords.strip().split(',')]
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",   # correct model name
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Provide:\n1. Description (max 200 characters)\n2. Keywords: followed by 50 relevant comma-separated single-word keywords"
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{image_base64}"
+                            }
+                        },
+                    ],
+                }
+            ],
+            max_tokens=1000
+        )
+        
+        # Process the response
+        text_output = response.choices[0].message.content.strip()
+        description_match = re.search(r"\*\*Description:\*\* (.+?)(?=\n|$)", text_output)
+        keywords_match = re.search(r"\*\*Keywords:\*\* (.+?)(?=\n|$)", text_output)
 
-    return description.strip(), keywords[:50]
+        description = description_match.group(1) if description_match else ""
+        keywords = keywords_match.group(1).split(", ") if keywords_match else []
+        return description, keywords
+    except Exception as e:
+        print(f"Error generating description and keywords: {e}")
+        return "", []
 
 if __name__ == '__main__':
     app.run(debug=True)
